@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Laboratorio CI/CD — FastAPI + React + PostgreSQL + SonarCloud + GitHub Actions
 
 Repositorio del laboratorio para practicar integración continua, análisis estático y
@@ -97,3 +98,6 @@ git push -u origin feature/etapa-3-tests
 | Tests frontend con cobertura | `cd frontend && npm run test:coverage` |
 | Lint frontend | `cd frontend && npm run lint` |
 | Reset BD | `docker compose down -v && docker compose up -d` |
+=======
+# Laboratorio-CI-CD
+>>>>>>> ec4a2d85b6e05d4f172625b5caca9835ab279999
