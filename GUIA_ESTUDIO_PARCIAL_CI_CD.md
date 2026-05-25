@@ -1165,31 +1165,37 @@ gh run view <run-id>
 
 ---
 
-## 15) Glosario extendido
+## 15) Glosario extendido (cada término: definición + por qué se usa)
 
-| Término | Definición | Ejemplo en el repo |
-|---------|-----------|-------------------|
-| **Pipeline** | Cadena automática de pasos de validación y/o despliegue | `ci-develop.yml`, `ci-master.yml` |
-| **Workflow** | Archivo YAML que define un pipeline en GitHub Actions | `.github/workflows/ci-master.yml` |
-| **Job** | Bloque de trabajo que corre en un runner | `lint`, `test-backend-coverage`, `sonarcloud` |
-| **Step** | Comando individual dentro de un job | `run: pytest --cov=app` |
-| **Runner** | Máquina virtual donde se ejecutan los jobs | `ubuntu-latest` |
-| **Trigger / Event** | Condición que activa un workflow | `pull_request: branches: [develop]` |
-| **Artifact** | Archivo generado por un job para uso posterior | `coverage.xml`, `lcov.info` |
-| **`needs`** | Dependencia entre jobs; uno espera a otro | `needs: [test-backend-coverage, test-frontend-coverage]` |
-| **`if: always()`** | Condición para correr aunque el job anterior falle | Job sonarcloud en ci-master.yml |
-| **Gate** | Condición obligatoria cuya falla bloquea el proceso | `--cov-fail-under=80` en pytest |
-| **Quality Gate** | Conjunto de gates en SonarCloud | Cobertura ≥ 80% + 0 bugs bloqueantes |
-| **Static Analysis** | Análisis sin ejecutar el programa | `ruff check app`, `eslint src` |
-| **Coverage** | Proporción de código ejecutado por tests | 88% → 88 de cada 100 líneas ejecutadas |
-| **Branch Protection** | Reglas que protegen una rama de acciones directas | Requiere CI verde antes de merge a master |
-| **Shift Left** | Mover validaciones y pruebas a etapas más tempranas del desarrollo | Detectar bugs en PR, no en producción |
-| **Regression** | Bug que existió, fue corregido, y vuelve a aparecer | Test de regresión = test que verifica el bug no vuelve |
-| **Canary Deployment** | Despliegue gradual a un % pequeño de usuarios primero | Netflix, Amazon, Spotify |
-| **Feature Flag** | Switch para activar/desactivar una funcionalidad sin despliegue | Permite CI con código incompleto en main |
-| **DORA Metrics** | Métricas estándar de madurez DevOps | Deployment Frequency, Lead Time, etc. |
-| **Integration Hell** | Problemas masivos al integrar ramas que divergieron mucho | Problema que CI resuelve |
-| **Technical Debt** | Código que funciona pero es difícil de mantener | SonarCloud lo mide en "días de deuda" |
+| Término | Definición clara | ¿Por qué se usa? | ¿Dónde se usa en la vida real? | Ejemplo en este repo |
+|---------|------------------|------------------|---------------------------------|----------------------|
+| **Pipeline** | Cadena automática de pasos (lint, tests, build, análisis) | Para validar calidad sin depender de revisiones manuales | En cualquier equipo que hace CI/CD (startups, banca, big tech) | `ci-develop.yml`, `ci-master.yml` |
+| **Workflow** | Archivo YAML que define un pipeline en GitHub Actions | Para versionar la automatización junto al código | GitHub (open source y repos privados) | `.github/workflows/ci-master.yml` |
+| **Job** | Bloque de trabajo dentro de un workflow | Para separar responsabilidades y correr tareas en paralelo | Builds distribuidos, pruebas por módulo, análisis por servicio | `lint`, `test-backend-coverage`, `sonarcloud` |
+| **Step** | Acción individual dentro de un job (`uses` o `run`) | Para dividir un job en pasos claros y trazables | Instalación de dependencias, ejecución de comandos, upload de artifacts | `run: pytest --cov=app` |
+| **Runner** | Máquina (VM o self-hosted) donde corre un job | Para ejecutar pipelines en un entorno controlado y reproducible | `ubuntu-latest`, runners propios con acceso interno | `runs-on: ubuntu-latest` |
+| **Trigger / Event** | Evento que dispara un workflow | Para automatizar validaciones cuando ocurre algo importante | PR, push, release, cron nightly, despliegue manual | `pull_request: branches: [develop]` |
+| **Artifact** | Archivo generado por CI y guardado para uso posterior | Para transferir resultados entre jobs y dejar evidencia auditable | Reportes de cobertura, binarios, logs de pruebas | `coverage.xml`, `frontend/coverage/` |
+| **`needs`** | Dependencia entre jobs (un job espera a otros) | Para controlar el orden cuando un job requiere outputs previos | Sonar, deploys, publish de paquetes | `needs: [test-backend-coverage, test-frontend-coverage]` |
+| **`if: always()`** | Condición que ejecuta un job/step aunque otro haya fallado | Para recolectar evidencia incluso en fallos | Recolección de artifacts, reportes de seguridad, notificaciones | Job `sonarcloud` y upload de cobertura |
+| **Gate** | Regla obligatoria de aceptación (pasa/falla) | Para bloquear merges con calidad insuficiente | Cobertura mínima, tests obligatorios, aprobación de seguridad | `--cov-fail-under=80` |
+| **Quality Gate** | Conjunto de reglas de calidad en SonarCloud | Para evitar deuda técnica y defectos críticos en rama estable | Equipos con SonarCloud/SonarQube en CI | Cobertura + issues críticos en PR a `master` |
+| **Static Analysis** | Análisis del código sin ejecutarlo | Para detectar errores de estilo, bugs probables y malas prácticas temprano | Linters de frontend/backend y escáneres de seguridad | `ruff check app`, `npm run lint` |
+| **Coverage** | Porcentaje de código ejecutado por tests | Para medir qué tanto del sistema está realmente probado | Cualquier suite de tests con reporte (`coverage.xml`, `lcov`) | Umbral `>=80%` en `ci-master.yml` |
+| **Branch Protection** | Reglas de protección para ramas críticas | Para impedir push directo o merge sin checks | `main/master` en equipos con control de calidad formal | Requerir CI verde antes de merge |
+| **Shift Left** | Mover validaciones temprano en el ciclo de desarrollo | Para detectar problemas antes (más barato y rápido de corregir) | QA, seguridad y performance en PR en vez de post-release | Lint+test en PR a `develop` |
+| **Regression** | Error que reaparece después de haber sido corregido | Para garantizar que un bug no vuelva | Suites de regresión en cada release | Tests de endpoints y validaciones en `test_tasks_extra.py` |
+| **Canary Deployment** | Despliegue gradual a un porcentaje pequeño de usuarios | Para reducir riesgo de impacto masivo ante fallas | Netflix, Amazon, productos con alto tráfico | Referencia conceptual en sección de CD |
+| **Feature Flag** | Interruptor para activar/desactivar funcionalidad en runtime | Para liberar código sin exponer la función a todos | Entornos SaaS, A/B testing, rollouts graduales | Referencia conceptual en la guía |
+| **DORA Metrics** | Métricas estándar de desempeño DevOps | Para medir objetivamente velocidad y estabilidad de entrega | Evaluación de madurez en equipos de ingeniería | Sección de métricas DORA en la guía |
+| **Integration Hell** | Caos al integrar cambios grandes y tardíos | Para entender por qué conviene integrar pequeño y frecuente | Equipos sin CI disciplinada | Problema que CI evita con PRs cortos |
+| **Technical Debt** | Trabajo de calidad pendiente que encarece cambios futuros | Para visibilizar costo de mantener código con problemas | Backlogs de refactor y calidad en software empresarial | SonarCloud lo expresa en “deuda” |
+| **Lint** | Chequeo automático de estilo y reglas de calidad de código | Para estandarizar código y prevenir errores simples | Python (Ruff), JS/TS (ESLint), Java, Go, etc. | `ruff check app`, `npm run lint` |
+| **Build** | Proceso de compilar/empaquetar la app para ejecución o despliegue | Para verificar que el proyecto puede generarse correctamente | Frontend bundling, artefactos backend, imágenes Docker | `npm run build`, `docker compose build` |
+| **PR (Pull Request)** | Solicitud formal para fusionar cambios de una rama a otra | Para revisar código con contexto, discusión y checks automatizados | GitHub/GitLab/Bitbucket en equipos colaborativos | `feature/* -> develop`, `develop -> master` |
+| **CRUD** | Operaciones básicas: Create, Read, Update, Delete | Para estructurar APIs y persistencia de datos | APIs REST, paneles administrativos, sistemas de negocio | Endpoints `/tasks` en backend |
+| **Endpoint** | Ruta HTTP de una API que ofrece una funcionalidad | Para exponer operaciones del backend a frontend/terceros | Microservicios, apps móviles, integraciones externas | `/health`, `/tasks`, `/tasks/count` |
+| **Hotspot de seguridad** | Zona de código potencialmente riesgosa que requiere revisión humana | Para priorizar auditoría de seguridad sin asumir falso positivo | SonarCloud/SonarQube, revisiones AppSec | Reportado por Sonar en análisis de PR |
 
 ---
 
@@ -1368,4 +1374,3 @@ CÓDIGO NUEVO
 ```
 
 > **Frase para recordar:** CI/CD no es burocracia técnica; es el sistema que permite a los equipos moverse rápido **con confianza**.
-
